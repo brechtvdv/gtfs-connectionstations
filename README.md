@@ -1,6 +1,6 @@
 # GTFS connection stations
 
-- Work in progress -
+-- Work in progress --
 
 This project calculates for every cluster of stops of different feeds one `connection_station`. This way, [Linked Connections](http://linkedconnections.org) can be calculated that enable interoperability between different operators.
 
@@ -24,10 +24,14 @@ Note: this is just a quick solution to avoid GTFS footpaths for my thesis.
 Specify paths to zipped GTFS feeds that you want to calculate parent stations (called connection stations) for.
 The stops will be loaded inside `gtfs-connectionstations` collection of MongoDB.
 
-`npm load_stops.js feed1.zip feed2.zip feedX.zip`
+```bash
+node load_stops.js feed1.zip feed2.zip feedX.zip
+```
 
 ## Calculate connection stations
 
 The script `calculate.js` uses a default distance between stops that are possible.
 
-`npm calculate.js`
+```bash
+node calculate.js
+```
