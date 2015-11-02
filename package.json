@@ -1,0 +1,32 @@
+{
+  "name": "gtfs-connectionstations",
+  "version": "0.0.1",
+  "description": "Calculates parent_station of stops from multiple GTFS feeds.",
+  "main": "load_stops.js",
+  "dependencies": {
+    "through2": "^2.0.0",
+    "mongodb": "^2.0.47",
+    "csvtojson": "^0.4.3",
+    "unzip": "^0.1.11",
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brechtvdv/gtfs-connectionstations.git"
+  },
+  "keywords": [
+    "GTFS",
+    "Linked-Connections",
+    "LC",
+    "CSA"
+  ],
+  "author": "brechtvdv",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/brechtvdv/gtfs-connectionstations/issues"
+  },
+  "homepage": "https://github.com/brechtvdv/gtfs-connectionstations#readme"
+}
