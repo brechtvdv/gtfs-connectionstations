@@ -4,8 +4,8 @@ var fs = require('fs'),
     unzip = require('unzip'),
     MongoClient = require('mongodb').MongoClient,
     Converter = require("csvtojson").Converter,
-    through2 = require('through2'),
-    GeoJSON = require('geojson');
+    AddFeedPriorityTransformer = require('./AddFeedPriorityTransformer'),
+    through2 = require('through2');
 
 var url = 'mongodb://localhost:27017/gtfs-connectionstations';
 
@@ -18,12 +18,22 @@ MongoClient.connect(url, function(err, db) {
     }
   });
 
+  // Create 2dsphere index for proximity locating
+  db.collection('stations').createIndex( { loc : "2dsphere" } );
+
   // Amount of feeds
   var amount = process.argv.slice(2).length;
+  var numberOfFeed = 1; // Current feed number in order of arguments
 
   // Read GTFS feeds one by one
   process.argv.slice(2).forEach(function (feed, index, array) {
     var csvConverter = new Converter({constructResult:false});
+    var feedPriorityTransformer = new AddFeedPriorityTransformer(numberOfFeed);
+    numberOfFeed++;
+
+    var i = 0; // keeps track of amount of stops that are read
+    var j = 0; // keeps track of amount of stops that are inserted in mongo
+    var readingEnded = false;
 
     // Unzip
     var readstream = fs.createReadStream(feed);
@@ -33,28 +43,40 @@ MongoClient.connect(url, function(err, db) {
       // Only interested in stops.txt
       if (fileName === "stops.txt") {
         // csv -> json -> mongoDB
-        entry.pipe(csvConverter)
-              .pipe(through2.obj(function (stop, enc, done) {
-                // Convert to GeoJSON
-                var newStop = [];
-                newStop.push(JSON.parse(stop));
-                var convertedStop = GeoJSON.parse(newStop, {Point: ['stop_lat', 'stop_lon'], include: ['stop_id']});
-                // Insert into MongoDB
-                db.collection('stations').insertOne(convertedStop, function() {
-                  done();
-                });
-              }));
+        var stopStream = entry.pipe(csvConverter);
+        stopStream.on('data', function() {
+          i++;
+        }).on('end', function() {
+          readingEnded = true;
+        });
+
+        stopStream.pipe(feedPriorityTransformer).pipe(through2.obj(function (stop, enc, done) {
+          // Convert to GeoJSON
+          var convertedStop = {};
+          convertedStop.stop_id = stop['stop_id'];
+          convertedStop.priority = stop['priority'];
+          convertedStop.loc = {
+            type: "Point" ,
+            coordinates: [ stop['stop_lon'] , stop['stop_lat'] ]
+          };
+          // Insert into MongoDB
+          db.collection('stations').insertOne(convertedStop, function() {
+            j++;
+            // All read and inserted
+            if (i === j && readingEnded) {
+              // Amount aanpassen
+              amount -= 1;
+              if (amount == 0) {
+                db.close();
+              }
+            }
+            done();
+          });
+        }));
       } else {
         entry.autodrain();
       }
     });
-    readstream.on('end', function() {
-      // Amount aanpassen
-      amount -= 1;
-      if (amount == 0) {
-        db.close();
-      }
-    })
     readstream.on('error', function (err) {
       console.error(err);
       db.close();
