@@ -3,8 +3,8 @@
 var MongoClient = require('mongodb').MongoClient,
     fs = require('fs');
 
-var DISTANCE_IN_METRES = 100;
-var url = 'mongodb://localhost:27017/gtfs-connectionstations';
+var DISTANCE_IN_METRES = 200;
+var url = 'mongodb://localhost:27017/gtfs-connectionstops';
 
 MongoClient.connect(url, function(err, db) {
   addToCSV('stop_id','connection_stop_id');
@@ -12,12 +12,12 @@ MongoClient.connect(url, function(err, db) {
 });
 
 var findNonCalculatedStop = function (db, callback) {
-  db.collection('stations').findOne( {'connection_station': { '$exists': false}}, function(err, stop) {
+  db.collection('stops').findOne( {'connection_stop_id': { '$exists': false}}, function(err, stop) {
     if (stop != null) {
       callback(db, stop);
     } else {
       // Empty the collection
-      db.collection('stations').deleteMany( {}, function(err, results) {
+      db.collection('stops').deleteMany( {}, function(err, results) {
         if (err){
           console.warn(err.message);
         }
@@ -29,7 +29,7 @@ var findNonCalculatedStop = function (db, callback) {
 
 var processStop = function (db, stop) {
   // Calculate for every stop its neighbours
-  db.collection('stations').find(
+  db.collection('stops').find(
     { loc :
       {
         $near : {
@@ -41,7 +41,7 @@ var processStop = function (db, stop) {
     var amount = neighbours.length;
     var inserted = 0;
 
-    var connectionStationId = neighbours[0]['stop_id'];
+    var connectionStopId = neighbours[0]['stop_id'];
     var done = function() {
       inserted++;
       if (inserted == amount) {
@@ -51,18 +51,18 @@ var processStop = function (db, stop) {
 
     for (var i=0; i<neighbours.length; i++) {
       if (neighbours.length > 1) {
-        addToCSV(neighbours[i]['stop_id'], connectionStationId);
+        addToCSV(neighbours[i]['stop_id'], connectionStopId);
       }
-      updateStop(db, neighbours[i]['stop_id'], connectionStationId, done);
+      updateStop(db, neighbours[i]['stop_id'], connectionStopId, done);
     }
   });
 };
 
-var updateStop = function (db, stopId, connectionStationId, callback) {
-  db.collection('stations').updateOne(
+var updateStop = function (db, stopId, connectionStopId, callback) {
+  db.collection('stops').updateOne(
     { 'stop_id' : stopId },
     {
-      $set: { 'connection_station':  connectionStationId}
+      $set: { 'connection_stop_id':  connectionStopId}
     }, function(err, results) {
       callback();
     });

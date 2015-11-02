@@ -7,19 +7,19 @@ var fs = require('fs'),
     AddFeedPriorityTransformer = require('./AddFeedPriorityTransformer'),
     through2 = require('through2');
 
-var url = 'mongodb://localhost:27017/gtfs-connectionstations';
+var url = 'mongodb://localhost:27017/gtfs-connectionstops';
 
 MongoClient.connect(url, function(err, db) {
   console.log("Connected correctly to server.");
   // Empty the collection
-  db.collection('stations').deleteMany( {}, function(err, results) {
+  db.collection('stops').deleteMany( {}, function(err, results) {
     if (err){
       console.warn(err.message);
     }
   });
 
   // Create 2dsphere index for proximity locating
-  db.collection('stations').createIndex( { loc : "2dsphere" } );
+  db.collection('stops').createIndex( { loc : "2dsphere" } );
 
   // Amount of feeds
   var amount = process.argv.slice(2).length;
@@ -60,7 +60,7 @@ MongoClient.connect(url, function(err, db) {
             coordinates: [ stop['stop_lon'] , stop['stop_lat'] ]
           };
           // Insert into MongoDB
-          db.collection('stations').insertOne(convertedStop, function() {
+          db.collection('stops').insertOne(convertedStop, function() {
             j++;
             // All read and inserted
             if (i === j && readingEnded) {
