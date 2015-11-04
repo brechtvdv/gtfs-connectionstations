@@ -1,11 +1,9 @@
 # GTFS connection stops
 
--- Work in progress --
-
 This project maps stops from different feeds to one ID, together they form a `connection_stop`. This way, [Linked Connections](http://linkedconnections.org) can be calculated that enable interoperability between different operators.
 
 The result will be a CSV file with the original `stop_id` and new `connection_stop_id` fields.
-(gtfs2connections)[https://github.com/brechtvdv/gtfs2connections] uses this file to map stops of different transit operators to one "parent" stop.
+[gtfs2connections](https://github.com/brechtvdv/gtfs2connections) uses this file to map stops of different transit operators to one "parent" stop.
 
 Note: this is just a quick solution to avoid GTFS footpaths for my thesis.
 
@@ -32,7 +30,7 @@ node load_stops.js feed1.zip feed2.zip feedX.zip
 
 ## Calculate connection stops
 
-The script `calculate.js` uses a default distance of 100 metres as metric for footpaths.
+The script `calculate.js` uses a default distance of 200 metres as metric for footpaths. (This has to be so much for big stations).
 
 ```bash
 node calculate.js > connection-stops.txt
