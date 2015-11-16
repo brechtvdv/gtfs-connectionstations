@@ -51,16 +51,13 @@ MongoClient.connect(url, function(err, db) {
         });
 
         stopStream.pipe(feedPriorityTransformer).pipe(through2.obj(function (stop, enc, done) {
-          // Convert to GeoJSON
-          var convertedStop = {};
-          convertedStop.stop_id = stop['stop_id'];
-          convertedStop.priority = stop['priority'];
-          convertedStop.loc = {
+          // Add GeoJSON location
+          stop.loc = {
             type: "Point" ,
             coordinates: [ stop['stop_lon'] , stop['stop_lat'] ]
           };
           // Insert into MongoDB
-          db.collection('stops').insertOne(convertedStop, function() {
+          db.collection('stops').insertOne(stop, function() {
             j++;
             // All read and inserted
             if (i === j && readingEnded) {

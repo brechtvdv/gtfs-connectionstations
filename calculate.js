@@ -5,6 +5,8 @@ var MongoClient = require('mongodb').MongoClient,
 
 var DISTANCE_IN_METRES = 200;
 var url = 'mongodb://localhost:27017/gtfs-connectionstops';
+var stopsjsonfile = 'stops.js'; // Used for loading stops in demo
+var stops = [];
 
 MongoClient.connect(url, function(err, db) {
   addToCSV('stop_id','connection_stop_id');
@@ -22,6 +24,12 @@ var findNonCalculatedStop = function (db, callback) {
           console.warn(err.message);
         }
         db.close();
+        // Write JSON array to file
+        fs.writeFile(stopsjsonfile, JSON.stringify(stops), function(err) {
+          if(err) {
+              return console.log(err);
+          }
+        }); 
       });
     } 
   });
@@ -54,6 +62,12 @@ var processStop = function (db, stop) {
         addToCSV(neighbours[i]['stop_id'], connectionStopId);
       }
       updateStop(db, neighbours[i]['stop_id'], connectionStopId, done);
+      var stop = {};
+      stop.stop_id = neighbours[i]['stop_id'];
+      stop.stop_name = neighbours[i]['stop_name'];
+      stop.loc = neighbours[i]['loc'];
+      stop.connection_stop_id = connectionStopId;
+      stops.push(stop);
     }
   });
 };
@@ -73,3 +87,14 @@ var addToCSV = function (original_stop_id, connection_stop_id) {
   // fs.appendFile('connection-stops.txt',data, encoding='utf8');
   console.log(data);
 };
+
+
+function writeJSONStopsToFile() {
+  fs.writeFile(stopsjsonfile, stops, function(err) {
+    if(err) {
+        return console.log(err);
+    }
+
+    console.log("The file was saved!");
+  }); 
+}
