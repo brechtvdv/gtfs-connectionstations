@@ -6,7 +6,7 @@ var MongoClient = require('mongodb').MongoClient,
 var DISTANCE_IN_METRES = 200;
 var url = 'mongodb://localhost:27017/gtfs-connectionstops';
 var stopsjsonfile = 'stops.js'; // Used for loading stops in demo
-var stops = [];
+var stops = {}; // we'll make one big JSON object of all the stops, so we can access them directly by stop ID
 
 MongoClient.connect(url, function(err, db) {
   addToCSV('stop_id','connection_stop_id');
@@ -62,12 +62,12 @@ var processStop = function (db, stop) {
         addToCSV(neighbours[i]['stop_id'], connectionStopId);
       }
       updateStop(db, neighbours[i]['stop_id'], connectionStopId, done);
-      var stop = {};
-      stop.stop_id = neighbours[i]['stop_id'];
-      stop.stop_name = neighbours[i]['stop_name'];
-      stop.loc = neighbours[i]['loc'];
-      stop.connection_stop_id = connectionStopId;
-      stops.push(stop);
+      var key = neighbours[i]['stop_id']; // index by stop ID
+      var value = {};
+      value.stop_name = neighbours[i]['stop_name'];
+      value.loc = neighbours[i]['loc'];
+      value.connection_stop_id = connectionStopId;
+      stops[key] = value;
     }
   });
 };

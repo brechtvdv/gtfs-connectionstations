@@ -36,4 +36,14 @@ The script `calculate.js` uses a default distance of 200 metres as metric for fo
 node calculate.js > connection-stops.txt
 ```
 
+This also generates a `stops.js` file with a JSON-object that contains all the stops with their stop_id as key. This is used in my demo: https://github.com/brechtvdv/thesis (note: add `var stops = ` in the front);
+
 After calculation, the collection is removed so you have to run load_stops.js again to restart.
+
+## Generate random queries
+
+To generate queries, run the following script:
+
+```bash
+node generate_queries.js > queries.js
+```
